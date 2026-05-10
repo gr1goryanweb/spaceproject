@@ -1,0 +1,1433 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Secrets of Space</title>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;600;700&family=Noto+Sans+Armenian:wght@400;600;700&family=Space+Grotesk:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script type="module" src="https://unpkg.com/@splinetool/viewer/build/spline-viewer.js"></script>
+
+    <style>
+        :root {
+            --accent: #00f2ff;
+            --accent-warm: #ffb84d;
+            --accent-violet: #b68cff;
+            --text: #ffffff;
+            --bg: #020205;
+            --glass: rgba(8, 12, 25, 0.56);
+            --border: rgba(255, 255, 255, 0.22);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            cursor: none;
+        }
+
+        html {
+            background: var(--bg);
+            scroll-behavior: smooth;
+        }
+
+        body {
+            min-height: 100vh;
+            color: var(--text);
+            font-family: "Space Grotesk", "Noto Sans", sans-serif;
+            overflow-x: hidden;
+            isolation: isolate;
+            background:
+                radial-gradient(circle at 12% 18%, rgba(0, 242, 255, 0.16), transparent 28%),
+                radial-gradient(circle at 82% 34%, rgba(255, 184, 77, 0.10), transparent 24%),
+                radial-gradient(circle at 50% 88%, rgba(182, 140, 255, 0.10), transparent 28%),
+                linear-gradient(140deg, #020205 0%, #050711 48%, #010104 100%);
+        }
+
+        html[lang="hy"] body {
+            font-family: "Noto Sans Armenian", "Noto Sans", sans-serif;
+        }
+
+        html[lang="ru"] body {
+            font-family: "Noto Sans", "Space Grotesk", sans-serif;
+        }
+
+        body::before {
+            content: "";
+            position: fixed;
+            inset: 0;
+            z-index: -1;
+            pointer-events: none;
+            background:
+                linear-gradient(115deg, rgba(255,255,255,0.08), rgba(255,255,255,0.012) 32%, rgba(0,242,255,0.04) 58%, rgba(255,184,77,0.03)),
+                repeating-linear-gradient(90deg, rgba(255,255,255,0.035) 0 1px, transparent 1px 160px);
+            backdrop-filter: blur(1.5px) saturate(125%);
+            -webkit-backdrop-filter: blur(1.5px) saturate(125%);
+            mask-image: radial-gradient(circle at center, rgba(0,0,0,0.72), rgba(0,0,0,0.22) 72%, transparent 100%);
+            -webkit-mask-image: radial-gradient(circle at center, rgba(0,0,0,0.72), rgba(0,0,0,0.22) 72%, transparent 100%);
+        }
+
+        .noise,
+        .star-field {
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+        }
+
+        .noise {
+            z-index: 999;
+            opacity: 0.032;
+            background: url("https://grainy-gradients.vercel.app/noise.svg");
+        }
+
+        .star-field {
+            z-index: -2;
+            background:
+                radial-gradient(1px 1px at 10% 20%, #fff, transparent),
+                radial-gradient(1.5px 1.5px at 50% 50%, var(--accent), transparent),
+                radial-gradient(1px 1px at 80% 80%, #fff, transparent),
+                radial-gradient(1.4px 1.4px at 30% 72%, var(--accent-warm), transparent),
+                radial-gradient(1px 1px at 72% 18%, var(--accent-violet), transparent);
+            background-size: 300px 300px, 420px 420px, 520px 520px, 680px 680px, 760px 760px;
+            animation: starDrift 48s linear infinite;
+        }
+
+        @keyframes starDrift {
+            from { transform: translate3d(0, 0, 0); }
+            to { transform: translate3d(-160px, 120px, 0); }
+        }
+
+        .nav-bar {
+            position: fixed;
+            top: 18px;
+            left: 50%;
+            z-index: 1000;
+            width: 96%;
+            max-width: 1240px;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 18px;
+            padding: 16px 30px;
+            transform: translateX(-50%);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            background:
+                linear-gradient(135deg, rgba(255,255,255,0.18), rgba(255,255,255,0.035)),
+                var(--glass);
+            backdrop-filter: blur(34px) saturate(185%);
+            -webkit-backdrop-filter: blur(34px) saturate(185%);
+            box-shadow:
+                inset 0 1px 0 rgba(255,255,255,0.24),
+                0 26px 80px rgba(0, 0, 0, 0.46),
+                0 0 46px rgba(0, 242, 255, 0.08);
+        }
+
+        .nav-link {
+            color: #fff;
+            font-size: 0.78rem;
+            font-weight: 700;
+            letter-spacing: 0.08em;
+            text-decoration: none;
+            text-transform: uppercase;
+            white-space: nowrap;
+            opacity: 0.74;
+            text-shadow: 0 0 18px rgba(0, 242, 255, 0.18);
+            transition: 0.3s ease;
+        }
+
+        .nav-link:hover {
+            color: var(--accent);
+            opacity: 1;
+        }
+
+        .language-switcher {
+            position: fixed;
+            top: 92px;
+            right: 24px;
+            z-index: 1001;
+            display: flex;
+            gap: 4px;
+            padding: 5px;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            background:
+                linear-gradient(135deg, rgba(255,255,255,0.18), rgba(255,255,255,0.035)),
+                rgba(8, 12, 25, 0.68);
+            backdrop-filter: blur(28px) saturate(180%);
+            -webkit-backdrop-filter: blur(28px) saturate(180%);
+            box-shadow: inset 0 1px 0 rgba(255,255,255,0.18), 0 18px 50px rgba(0, 0, 0, 0.34);
+        }
+
+        .lang-btn {
+            min-width: 38px;
+            height: 30px;
+            border: 0;
+            border-radius: 6px;
+            color: rgba(255, 255, 255, 0.68);
+            background: transparent;
+            font: 700 0.7rem/1 "Space Grotesk", "Noto Sans", sans-serif;
+            letter-spacing: 0.05em;
+            transition: 0.25s ease;
+        }
+
+        .lang-btn:hover,
+        .lang-btn.is-active {
+            color: #001014;
+            background: linear-gradient(135deg, var(--accent), var(--accent-warm));
+            box-shadow: 0 0 24px rgba(0, 242, 255, 0.32);
+        }
+
+        section {
+            position: relative;
+            z-index: 1;
+            min-height: 100vh;
+            width: 100vw;
+            display: flex;
+            align-items: center;
+            gap: 30px;
+            padding: 135px 8% 60px;
+        }
+
+        section::before {
+            content: "";
+            position: absolute;
+            inset: 8% 4%;
+            border: 1px solid rgba(255,255,255,0.055);
+            border-radius: 8px;
+            pointer-events: none;
+            opacity: 0.62;
+            background: linear-gradient(135deg, rgba(255,255,255,0.055), rgba(255,255,255,0.006) 46%, rgba(0,242,255,0.025));
+            box-shadow: inset 0 1px 0 rgba(255,255,255,0.08);
+        }
+
+        .split-section {
+            justify-content: space-around;
+        }
+
+        .reverse {
+            flex-direction: row-reverse;
+        }
+
+        .planet-wrap {
+            position: relative;
+            flex: 1.2;
+            min-width: 300px;
+            height: 75vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            filter: drop-shadow(0 0 30px rgba(0, 242, 255, 0.12)) drop-shadow(0 26px 80px rgba(0, 0, 0, 0.75));
+        }
+
+        .planet-canvas,
+        .spline-wrap,
+        spline-viewer {
+            width: 100%;
+            height: 100%;
+            display: block;
+        }
+
+        .planet-canvas,
+        .spline-wrap {
+            border-radius: 8px;
+        }
+
+        .spline-wrap {
+            overflow: hidden;
+            filter: contrast(1.08) saturate(1.14);
+        }
+
+        .physics-card {
+            position: relative;
+            z-index: 10;
+            flex: 0.8;
+            max-width: 460px;
+            min-width: 0;
+            padding: 45px;
+            border: 1px solid rgba(255, 255, 255, 0.18);
+            border-top: 1px solid rgba(255, 255, 255, 0.42);
+            border-radius: 8px;
+            background:
+                linear-gradient(135deg, rgba(255,255,255,0.19) 0%, rgba(255,255,255,0.045) 48%, rgba(255,255,255,0.018) 100%),
+                linear-gradient(180deg, rgba(0,242,255,0.075), rgba(255,184,77,0.04));
+            backdrop-filter: blur(48px) saturate(205%);
+            -webkit-backdrop-filter: blur(48px) saturate(205%);
+            box-shadow:
+                inset 0 1px 0 rgba(255,255,255,0.18),
+                inset 0 -28px 60px rgba(255,255,255,0.025),
+                0 42px 110px rgba(0,0,0,0.62);
+        }
+
+        .tag {
+            display: block;
+            margin-bottom: 10px;
+            color: var(--accent);
+            font-size: 0.7rem;
+            letter-spacing: 0.22em;
+            text-transform: uppercase;
+            opacity: 0.86;
+        }
+
+        .physics-card h2 {
+            margin-bottom: 15px;
+            font-size: clamp(2.25rem, 4vw, 3.35rem);
+            line-height: 1.04;
+            font-weight: 700;
+            overflow-wrap: anywhere;
+            background: linear-gradient(to bottom, #fff, rgba(255,255,255,0.42));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .physics-card p {
+            margin-bottom: 25px;
+            color: rgba(255, 255, 255, 0.76);
+            font-size: 1rem;
+            line-height: 1.65;
+        }
+
+        .audio-player {
+            width: fit-content;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            padding: 10px 18px;
+            border: 1px solid rgba(255, 255, 255, 0.16);
+            border-radius: 100px;
+            background: linear-gradient(135deg, rgba(255,255,255,0.12), rgba(255,255,255,0.035));
+            backdrop-filter: blur(18px) saturate(170%);
+            -webkit-backdrop-filter: blur(18px) saturate(170%);
+        }
+
+        .play-btn {
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            background: var(--accent);
+            transition: 0.2s ease;
+        }
+
+        .play-btn:hover {
+            transform: scale(1.1);
+            filter: brightness(1.2);
+        }
+
+        .audio-wave {
+            height: 12px;
+            display: flex;
+            align-items: center;
+            gap: 3px;
+        }
+
+        .audio-wave span {
+            width: 2px;
+            height: 4px;
+            border-radius: 2px;
+            background: var(--accent);
+            opacity: 0.35;
+        }
+
+        .playing span {
+            animation: wave 1s ease-in-out infinite;
+            opacity: 1;
+        }
+
+        .playing span:nth-child(2) { animation-delay: 0.15s; }
+        .playing span:nth-child(3) { animation-delay: 0.3s; }
+        .playing span:nth-child(4) { animation-delay: 0.45s; }
+
+        @keyframes wave {
+            0%, 100% { height: 4px; }
+            50% { height: 12px; }
+        }
+
+        .cursor-dot,
+        .cursor-ring {
+            position: fixed;
+            pointer-events: none;
+        }
+
+        .cursor-dot {
+            width: 6px;
+            height: 6px;
+            z-index: 10001;
+            border-radius: 50%;
+            background: #fff;
+        }
+
+        .cursor-ring {
+            width: 40px;
+            height: 40px;
+            z-index: 10000;
+            border: 1px solid var(--accent);
+            border-radius: 50%;
+            mix-blend-mode: difference;
+        }
+
+        @media (max-width: 1000px) {
+            .split-section,
+            .reverse {
+                flex-direction: column;
+                padding-top: 195px;
+                text-align: center;
+            }
+
+            .planet-wrap {
+                min-width: 100%;
+                height: 42vh;
+            }
+
+            .audio-player {
+                margin: 0 auto;
+            }
+
+            .physics-card h2 {
+                font-size: 2.5rem;
+            }
+
+            .language-switcher {
+                top: 124px;
+                right: 50%;
+                transform: translateX(50%);
+            }
+        }
+
+        @media (max-width: 560px) {
+            .nav-bar {
+                top: 12px;
+                gap: 10px;
+                padding: 12px 14px;
+            }
+
+            .nav-link {
+                font-size: 0.64rem;
+            }
+
+            .physics-card {
+                padding: 30px 24px;
+            }
+
+            section {
+                padding-right: 5%;
+                padding-left: 5%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="noise"></div>
+    <div class="star-field"></div>
+    <div class="cursor-dot"></div>
+    <div class="cursor-ring"></div>
+
+    <nav class="nav-bar" aria-label="Space sections">
+        <a href="#black-hole" class="nav-link" data-i18n="nav.blackHole">Black Hole</a>
+        <a href="#solar-system" class="nav-link" data-i18n="nav.solarSystem">Solar System</a>
+        <a href="#mercury" class="nav-link" data-i18n="nav.mercury">Mercury</a>
+        <a href="#venus" class="nav-link" data-i18n="nav.venus">Venus</a>
+        <a href="#earth" class="nav-link" data-i18n="nav.earth">Earth</a>
+        <a href="#mars" class="nav-link" data-i18n="nav.mars">Mars</a>
+        <a href="#jupiter" class="nav-link" data-i18n="nav.jupiter">Jupiter</a>
+        <a href="#saturn" class="nav-link" data-i18n="nav.saturn">Saturn</a>
+        <a href="#uranus" class="nav-link" data-i18n="nav.uranus">Uranus</a>
+        <a href="#neptune" class="nav-link" data-i18n="nav.neptune">Neptune</a>
+    </nav>
+
+    <div class="language-switcher" aria-label="Language selector">
+        <button class="lang-btn is-active" type="button" data-lang="en" aria-pressed="true">EN</button>
+        <button class="lang-btn" type="button" data-lang="hy" aria-pressed="false">HY</button>
+        <button class="lang-btn" type="button" data-lang="ru" aria-pressed="false">RU</button>
+    </div>
+
+    <section id="black-hole" class="split-section">
+        <div class="physics-card">
+            <span class="tag" data-i18n="blackHole.tag">Singularity</span>
+            <h2 data-i18n="blackHole.title">Black Hole</h2>
+            <p data-i18n="blackHole.text">A region where gravity is so intense that the escape velocity exceeds the speed of light, c. Spacetime curvature becomes infinite at the center - not even photons can escape.</p>
+            <div class="audio-player">
+                <div class="play-btn"><svg viewBox="0 0 24 24" width="16" height="16" fill="black"><path d="M8 5v14l11-7z"/></svg></div>
+                <div class="audio-wave"><span></span><span></span><span></span><span></span></div>
+                <audio src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3"></audio>
+            </div>
+        </div>
+        <div class="planet-wrap">
+            <div class="spline-wrap">
+                <spline-viewer url="https://prod.spline.design/F10xz1kwWuxUsBiH/scene.splinecode"></spline-viewer>
+            </div>
+        </div>
+    </section>
+
+    <section id="solar-system" class="split-section reverse">
+        <div class="physics-card">
+            <span class="tag" data-i18n="solarSystem.tag">The Sun</span>
+            <h2 data-i18n="solarSystem.title">Solar System</h2>
+            <p data-i18n="solarSystem.text">Our star system consists of a G2V yellow dwarf and the objects that orbit it, bound by Newton's law of universal gravitation. Eight planets trace elliptical paths through spacetime.</p>
+            <div class="audio-player">
+                <div class="play-btn"><svg viewBox="0 0 24 24" width="16" height="16" fill="black"><path d="M8 5v14l11-7z"/></svg></div>
+                <div class="audio-wave"><span></span><span></span><span></span><span></span></div>
+                <audio src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3"></audio>
+            </div>
+        </div>
+        <div class="planet-wrap">
+            <div class="spline-wrap">
+                <spline-viewer url="https://prod.spline.design/UnMLnj6tDwplxTh0/scene.splinecode"></spline-viewer>
+            </div>
+        </div>
+    </section>
+
+    <section id="mercury" class="split-section">
+        <div class="physics-card">
+            <span class="tag" data-i18n="mercury.tag">Planet I</span>
+            <h2 data-i18n="mercury.title">Mercury</h2>
+            <p data-i18n="mercury.text">The smallest planet. Because it lacks an atmosphere, temperatures fluctuate from 430°C to -180°C. Its heavily cratered surface bears the scars of a violent solar system youth.</p>
+            <div class="audio-player">
+                <div class="play-btn"><svg viewBox="0 0 24 24" width="16" height="16" fill="black"><path d="M8 5v14l11-7z"/></svg></div>
+                <div class="audio-wave"><span></span><span></span><span></span><span></span></div>
+                <audio src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-3.mp3"></audio>
+            </div>
+        </div>
+        <div class="planet-wrap">
+            <canvas class="planet-canvas" id="canvas-mercury"></canvas>
+        </div>
+    </section>
+
+    <section id="venus" class="split-section reverse">
+        <div class="physics-card">
+            <span class="tag" data-i18n="venus.tag">Planet II</span>
+            <h2 data-i18n="venus.title">Venus</h2>
+            <p data-i18n="venus.text">The hottest planet. A runaway greenhouse effect traps solar energy, creating surface pressures 90 times that of Earth and temperatures hot enough to melt lead.</p>
+            <div class="audio-player">
+                <div class="play-btn"><svg viewBox="0 0 24 24" width="16" height="16" fill="black"><path d="M8 5v14l11-7z"/></svg></div>
+                <div class="audio-wave"><span></span><span></span><span></span><span></span></div>
+                <audio src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-4.mp3"></audio>
+            </div>
+        </div>
+        <div class="planet-wrap">
+            <canvas class="planet-canvas" id="canvas-venus"></canvas>
+        </div>
+    </section>
+
+    <section id="earth" class="split-section">
+        <div class="physics-card">
+            <span class="tag" data-i18n="earth.tag">Planet III</span>
+            <h2 data-i18n="earth.title">Earth</h2>
+            <p data-i18n="earth.text">Our home. The only known world with liquid water and an atmosphere containing 21% oxygen, vital for life. A magnetic field shields us from cosmic radiation.</p>
+            <div class="audio-player">
+                <div class="play-btn"><svg viewBox="0 0 24 24" width="16" height="16" fill="black"><path d="M8 5v14l11-7z"/></svg></div>
+                <div class="audio-wave"><span></span><span></span><span></span><span></span></div>
+                <audio src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-5.mp3"></audio>
+            </div>
+        </div>
+        <div class="planet-wrap">
+            <div class="spline-wrap">
+                <spline-viewer url="https://prod.spline.design/6D34YHDOeBJYw-qf/scene.splinecode"></spline-viewer>
+            </div>
+        </div>
+    </section>
+
+    <section id="mars" class="split-section reverse">
+        <div class="physics-card">
+            <span class="tag" data-i18n="mars.tag">Planet IV</span>
+            <h2 data-i18n="mars.title">Mars</h2>
+            <p data-i18n="mars.text">The Red Planet. Its rusted iron surface and thin atmosphere make it a prime candidate for future human colonization. Olympus Mons is the tallest volcano in the solar system.</p>
+            <div class="audio-player">
+                <div class="play-btn"><svg viewBox="0 0 24 24" width="16" height="16" fill="black"><path d="M8 5v14l11-7z"/></svg></div>
+                <div class="audio-wave"><span></span><span></span><span></span><span></span></div>
+                <audio src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-6.mp3"></audio>
+            </div>
+        </div>
+        <div class="planet-wrap">
+            <canvas class="planet-canvas" id="canvas-mars"></canvas>
+        </div>
+    </section>
+
+    <section id="jupiter" class="split-section">
+        <div class="physics-card">
+            <span class="tag" data-i18n="jupiter.tag">Planet V</span>
+            <h2 data-i18n="jupiter.title">Jupiter</h2>
+            <p data-i18n="jupiter.text">The King of Planets. This gas giant is so massive it could fit all other planets inside it twice over. The Great Red Spot is a storm larger than Earth that has raged for centuries.</p>
+            <div class="audio-player">
+                <div class="play-btn"><svg viewBox="0 0 24 24" width="16" height="16" fill="black"><path d="M8 5v14l11-7z"/></svg></div>
+                <div class="audio-wave"><span></span><span></span><span></span><span></span></div>
+                <audio src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-7.mp3"></audio>
+            </div>
+        </div>
+        <div class="planet-wrap">
+            <canvas class="planet-canvas" id="canvas-jupiter"></canvas>
+        </div>
+    </section>
+
+    <section id="saturn" class="split-section reverse">
+        <div class="physics-card">
+            <span class="tag" data-i18n="saturn.tag">Planet VI</span>
+            <h2 data-i18n="saturn.title">Saturn</h2>
+            <p data-i18n="saturn.text">The ringed wonder. Its iconic rings are composed primarily of ice particles and rocky debris spanning 282,000 km. Saturn is the least dense planet - it could float on water.</p>
+            <div class="audio-player">
+                <div class="play-btn"><svg viewBox="0 0 24 24" width="16" height="16" fill="black"><path d="M8 5v14l11-7z"/></svg></div>
+                <div class="audio-wave"><span></span><span></span><span></span><span></span></div>
+                <audio src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-8.mp3"></audio>
+            </div>
+        </div>
+        <div class="planet-wrap">
+            <canvas class="planet-canvas" id="canvas-saturn"></canvas>
+        </div>
+    </section>
+
+    <section id="uranus" class="split-section">
+        <div class="physics-card">
+            <span class="tag" data-i18n="uranus.tag">Planet VII</span>
+            <h2 data-i18n="uranus.title">Uranus</h2>
+            <p data-i18n="uranus.text">The tilted giant. Uranus rotates at an angle of 98 degrees, likely due to a massive ancient collision. Its methane atmosphere absorbs red light, giving it a pale aqua hue.</p>
+            <div class="audio-player">
+                <div class="play-btn"><svg viewBox="0 0 24 24" width="16" height="16" fill="black"><path d="M8 5v14l11-7z"/></svg></div>
+                <div class="audio-wave"><span></span><span></span><span></span><span></span></div>
+                <audio src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-9.mp3"></audio>
+            </div>
+        </div>
+        <div class="planet-wrap">
+            <canvas class="planet-canvas" id="canvas-uranus"></canvas>
+        </div>
+    </section>
+
+    <section id="neptune" class="split-section reverse">
+        <div class="physics-card">
+            <span class="tag" data-i18n="neptune.tag">Planet VIII</span>
+            <h2 data-i18n="neptune.title">Neptune</h2>
+            <p data-i18n="neptune.text">The windiest world. Supersonic winds reach 2,100 km/h through clouds of frozen methane on this deep blue ice giant, the most distant planet from our Sun.</p>
+            <div class="audio-player">
+                <div class="play-btn"><svg viewBox="0 0 24 24" width="16" height="16" fill="black"><path d="M8 5v14l11-7z"/></svg></div>
+                <div class="audio-wave"><span></span><span></span><span></span><span></span></div>
+                <audio src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3"></audio>
+            </div>
+        </div>
+        <div class="planet-wrap">
+            <canvas class="planet-canvas" id="canvas-neptune"></canvas>
+        </div>
+    </section>
+
+    <script>
+    gsap.registerPlugin(ScrollTrigger);
+
+    const translations = {
+        en: {
+            pageTitle: "Secrets of Space",
+            "nav.blackHole": "Black Hole",
+            "nav.solarSystem": "Solar System",
+            "nav.mercury": "Mercury",
+            "nav.venus": "Venus",
+            "nav.earth": "Earth",
+            "nav.mars": "Mars",
+            "nav.jupiter": "Jupiter",
+            "nav.saturn": "Saturn",
+            "nav.uranus": "Uranus",
+            "nav.neptune": "Neptune",
+            "blackHole.tag": "Singularity",
+            "blackHole.title": "Black Hole",
+            "blackHole.text": "A region where gravity is so intense that the escape velocity exceeds the speed of light, c. Spacetime curvature becomes infinite at the center - not even photons can escape.",
+            "solarSystem.tag": "The Sun",
+            "solarSystem.title": "Solar System",
+            "solarSystem.text": "Our star system consists of a G2V yellow dwarf and the objects that orbit it, bound by Newton's law of universal gravitation. Eight planets trace elliptical paths through spacetime.",
+            "mercury.tag": "Planet I",
+            "mercury.title": "Mercury",
+            "mercury.text": "The smallest planet. Because it lacks an atmosphere, temperatures fluctuate from 430°C to -180°C. Its heavily cratered surface bears the scars of a violent solar system youth.",
+            "venus.tag": "Planet II",
+            "venus.title": "Venus",
+            "venus.text": "The hottest planet. A runaway greenhouse effect traps solar energy, creating surface pressures 90 times that of Earth and temperatures hot enough to melt lead.",
+            "earth.tag": "Planet III",
+            "earth.title": "Earth",
+            "earth.text": "Our home. The only known world with liquid water and an atmosphere containing 21% oxygen, vital for life. A magnetic field shields us from cosmic radiation.",
+            "mars.tag": "Planet IV",
+            "mars.title": "Mars",
+            "mars.text": "The Red Planet. Its rusted iron surface and thin atmosphere make it a prime candidate for future human colonization. Olympus Mons is the tallest volcano in the solar system.",
+            "jupiter.tag": "Planet V",
+            "jupiter.title": "Jupiter",
+            "jupiter.text": "The King of Planets. This gas giant is so massive it could fit all other planets inside it twice over. The Great Red Spot is a storm larger than Earth that has raged for centuries.",
+            "saturn.tag": "Planet VI",
+            "saturn.title": "Saturn",
+            "saturn.text": "The ringed wonder. Its iconic rings are composed primarily of ice particles and rocky debris spanning 282,000 km. Saturn is the least dense planet - it could float on water.",
+            "uranus.tag": "Planet VII",
+            "uranus.title": "Uranus",
+            "uranus.text": "The tilted giant. Uranus rotates at an angle of 98 degrees, likely due to a massive ancient collision. Its methane atmosphere absorbs red light, giving it a pale aqua hue.",
+            "neptune.tag": "Planet VIII",
+            "neptune.title": "Neptune",
+            "neptune.text": "The windiest world. Supersonic winds reach 2,100 km/h through clouds of frozen methane on this deep blue ice giant, the most distant planet from our Sun."
+        },
+        hy: {
+            pageTitle: "Տիեզերքի գաղտնիքները",
+            "nav.blackHole": "Սև խոռոչ",
+            "nav.solarSystem": "Արեգակնային համակարգ",
+            "nav.mercury": "Մերկուրի",
+            "nav.venus": "Վեներա",
+            "nav.earth": "Երկիր",
+            "nav.mars": "Մարս",
+            "nav.jupiter": "Յուպիտեր",
+            "nav.saturn": "Սատուրն",
+            "nav.uranus": "Ուրան",
+            "nav.neptune": "Նեպտուն",
+            "blackHole.tag": "Սինգուլյարություն",
+            "blackHole.title": "Սև խոռոչ",
+            "blackHole.text": "Տարածք, որտեղ ձգողականությունն այնքան ուժեղ է, որ փախուստի արագությունը գերազանցում է լույսի արագությունը՝ c-ն։ Կենտրոնում տարածաժամանակի կորությունը դառնում է անսահման, և նույնիսկ ֆոտոնները չեն կարող հեռանալ։",
+            "solarSystem.tag": "Արեգակը",
+            "solarSystem.title": "Արեգակնային համակարգ",
+            "solarSystem.text": "Մեր աստղային համակարգը կազմված է G2V դասի դեղին թզուկից և դրա շուրջ պտտվող մարմիններից, որոնք կապված են Նյուտոնի համընդհանուր ձգողության օրենքով։ Ութ մոլորակներ տարածաժամանակում շարժվում են էլիպսաձև ուղեծրերով։",
+            "mercury.tag": "Մոլորակ I",
+            "mercury.title": "Մերկուրի",
+            "mercury.text": "Ամենափոքր մոլորակը։ Քանի որ այն գրեթե մթնոլորտ չունի, ջերմաստիճանը տատանվում է 430°C-ից մինչև -180°C։ Նրա բազմաթիվ խառնարաններով մակերևույթը պահում է երիտասարդ Արեգակնային համակարգի բուռն անցյալի հետքերը։",
+            "venus.tag": "Մոլորակ II",
+            "venus.title": "Վեներա",
+            "venus.text": "Ամենաթեժ մոլորակը։ Անվերահսկելի ջերմոցային էֆեկտը պահում է Արեգակի էներգիան՝ ստեղծելով Երկրից 90 անգամ մեծ մակերևութային ճնշում և կապարը հալեցնելու չափ բարձր ջերմաստիճաններ։",
+            "earth.tag": "Մոլորակ III",
+            "earth.title": "Երկիր",
+            "earth.text": "Մեր տունը։ Միակ հայտնի աշխարհը, որտեղ կա հեղուկ ջուր և մթնոլորտ՝ 21% թթվածնով, որը կենսական է կյանքի համար։ Մագնիսական դաշտը պաշտպանում է մեզ տիեզերական ճառագայթումից։",
+            "mars.tag": "Մոլորակ IV",
+            "mars.title": "Մարս",
+            "mars.text": "Կարմիր մոլորակը։ Նրա ժանգոտած երկաթային մակերևույթն ու նոսր մթնոլորտը այն դարձնում են ապագա մարդկային բնակեցման գլխավոր թեկնածու։ Օլիմպոս Մոնսը Արեգակնային համակարգի ամենաբարձր հրաբուխն է։",
+            "jupiter.tag": "Մոլորակ V",
+            "jupiter.title": "Յուպիտեր",
+            "jupiter.text": "Մոլորակների արքան։ Այս գազային հսկան այնքան զանգվածային է, որ բոլոր մյուս մոլորակները կարող էին երկու անգամ տեղավորվել նրա ներսում։ Մեծ կարմիր բիծը Երկրից մեծ փոթորիկ է, որը մոլեգնում է դարեր շարունակ։",
+            "saturn.tag": "Մոլորակ VI",
+            "saturn.title": "Սատուրն",
+            "saturn.text": "Օղակավոր հրաշքը։ Նրա նշանավոր օղակները հիմնականում կազմված են սառցե մասնիկներից և քարային բեկորներից՝ ձգվելով 282,000 կմ։ Սատուրնը ամենաքիչ խտություն ունեցող մոլորակն է. տեսականորեն կարող էր լողալ ջրի վրա։",
+            "uranus.tag": "Մոլորակ VII",
+            "uranus.title": "Ուրան",
+            "uranus.text": "Թեքված հսկան։ Ուրանը պտտվում է 98 աստիճան թեքությամբ՝ հավանաբար հնագույն հսկայական բախման հետևանքով։ Նրա մեթանային մթնոլորտը կլանում է կարմիր լույսը՝ տալով նրան բաց երկնագույն երանգ։",
+            "neptune.tag": "Մոլորակ VIII",
+            "neptune.title": "Նեպտուն",
+            "neptune.text": "Ամենաքամոտ աշխարհը։ Այս խոր կապույտ սառցե հսկայի սառած մեթանի ամպերում գերձայնային քամիները հասնում են 2,100 կմ/ժ-ի. այն Արեգակից ամենահեռու մոլորակն է։"
+        },
+        ru: {
+            pageTitle: "Тайны космоса",
+            "nav.blackHole": "Черная дыра",
+            "nav.solarSystem": "Солнечная система",
+            "nav.mercury": "Меркурий",
+            "nav.venus": "Венера",
+            "nav.earth": "Земля",
+            "nav.mars": "Марс",
+            "nav.jupiter": "Юпитер",
+            "nav.saturn": "Сатурн",
+            "nav.uranus": "Уран",
+            "nav.neptune": "Нептун",
+            "blackHole.tag": "Сингулярность",
+            "blackHole.title": "Черная дыра",
+            "blackHole.text": "Область, где гравитация настолько сильна, что скорость убегания превышает скорость света c. В центре кривизна пространства-времени становится бесконечной, и даже фотоны не могут выбраться.",
+            "solarSystem.tag": "Солнце",
+            "solarSystem.title": "Солнечная система",
+            "solarSystem.text": "Наша звездная система состоит из желтого карлика класса G2V и объектов, которые вращаются вокруг него, связанных законом всемирного тяготения Ньютона. Восемь планет движутся по эллиптическим орбитам в пространстве-времени.",
+            "mercury.tag": "Планета I",
+            "mercury.title": "Меркурий",
+            "mercury.text": "Самая маленькая планета. Из-за почти полного отсутствия атмосферы температура колеблется от 430°C до -180°C. Ее изрытая кратерами поверхность хранит следы бурной молодости Солнечной системы.",
+            "venus.tag": "Планета II",
+            "venus.title": "Венера",
+            "venus.text": "Самая горячая планета. Неконтролируемый парниковый эффект удерживает солнечную энергию, создавая давление на поверхности в 90 раз выше земного и температуры, способные расплавить свинец.",
+            "earth.tag": "Планета III",
+            "earth.title": "Земля",
+            "earth.text": "Наш дом. Единственный известный мир с жидкой водой и атмосферой, содержащей 21% кислорода, жизненно важного для жизни. Магнитное поле защищает нас от космического излучения.",
+            "mars.tag": "Планета IV",
+            "mars.title": "Марс",
+            "mars.text": "Красная планета. Ее ржавая железистая поверхность и тонкая атмосфера делают ее главным кандидатом для будущей колонизации человеком. Олимп - самый высокий вулкан Солнечной системы.",
+            "jupiter.tag": "Планета V",
+            "jupiter.title": "Юпитер",
+            "jupiter.text": "Король планет. Этот газовый гигант настолько массивен, что все остальные планеты могли бы дважды поместиться внутри него. Большое красное пятно - шторм крупнее Земли, бушующий веками.",
+            "saturn.tag": "Планета VI",
+            "saturn.title": "Сатурн",
+            "saturn.text": "Кольцевое чудо. Его знаменитые кольца состоят в основном из ледяных частиц и каменных обломков и простираются на 282 000 км. Сатурн - наименее плотная планета: теоретически он мог бы плавать в воде.",
+            "uranus.tag": "Планета VII",
+            "uranus.title": "Уран",
+            "uranus.text": "Наклоненный гигант. Уран вращается под углом 98 градусов, вероятно из-за древнего мощного столкновения. Метановая атмосфера поглощает красный свет, придавая ему бледный аквамариновый оттенок.",
+            "neptune.tag": "Планета VIII",
+            "neptune.title": "Нептун",
+            "neptune.text": "Самый ветреный мир. Сверхзвуковые ветры достигают 2 100 км/ч в облаках замерзшего метана на этом глубокосинем ледяном гиганте, самой далекой планете от Солнца."
+        }
+    };
+
+    const languageButtons = document.querySelectorAll(".lang-btn");
+    const playIcon = '<svg viewBox="0 0 24 24" width="16" height="16" fill="black"><path d="M8 5v14l11-7z"/></svg>';
+    const pauseIcon = '<svg viewBox="0 0 24 24" width="16" height="16" fill="black"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>';
+
+    function readSavedLanguage() {
+        try {
+            return localStorage.getItem("space-page-language") || "en";
+        } catch (error) {
+            return "en";
+        }
+    }
+
+    function saveLanguage(language) {
+        try {
+            localStorage.setItem("space-page-language", language);
+        } catch (error) {}
+    }
+
+    function setLanguage(language) {
+        const dictionary = translations[language] || translations.en;
+        document.documentElement.lang = language;
+        document.title = dictionary.pageTitle;
+
+        document.querySelectorAll("[data-i18n]").forEach((element) => {
+            const key = element.dataset.i18n;
+            if (dictionary[key]) element.textContent = dictionary[key];
+        });
+
+        languageButtons.forEach((button) => {
+            const isActive = button.dataset.lang === language;
+            button.classList.toggle("is-active", isActive);
+            button.setAttribute("aria-pressed", String(isActive));
+        });
+
+        saveLanguage(language);
+    }
+
+    languageButtons.forEach((button) => {
+        button.addEventListener("click", () => setLanguage(button.dataset.lang));
+    });
+
+    setLanguage(readSavedLanguage());
+
+    const dot = document.querySelector(".cursor-dot");
+    const ring = document.querySelector(".cursor-ring");
+
+    window.addEventListener("mousemove", (event) => {
+        gsap.to(dot, { x: event.clientX, y: event.clientY, duration: 0 });
+        gsap.to(ring, { x: event.clientX - 20, y: event.clientY - 20, duration: 0.5, ease: "power2.out" });
+    });
+
+    document.querySelectorAll(".play-btn").forEach((button) => {
+        button.addEventListener("click", function () {
+            const audio = this.parentElement.querySelector("audio");
+            const wave = this.parentElement.querySelector(".audio-wave");
+
+            if (audio.paused) {
+                document.querySelectorAll("audio").forEach((item) => {
+                    item.pause();
+                    item.parentElement.querySelector(".audio-wave").classList.remove("playing");
+                    item.parentElement.querySelector(".play-btn").innerHTML = playIcon;
+                });
+                audio.play();
+                wave.classList.add("playing");
+                this.innerHTML = pauseIcon;
+            } else {
+                audio.pause();
+                wave.classList.remove("playing");
+                this.innerHTML = playIcon;
+            }
+        });
+    });
+
+    gsap.utils.toArray(".physics-card").forEach((card, index) => {
+        gsap.from(card, {
+            scrollTrigger: { trigger: card, start: "top 90%", toggleActions: "play none none reverse" },
+            opacity: 0,
+            x: index % 2 === 0 ? -60 : 60,
+            duration: 1.2,
+            ease: "power4.out"
+        });
+    });
+
+    document.querySelectorAll(".nav-link").forEach((anchor) => {
+        anchor.addEventListener("click", function (event) {
+            event.preventDefault();
+            document.querySelector(this.getAttribute("href")).scrollIntoView({ behavior: "smooth" });
+        });
+    });
+
+    const scenes = {};
+
+    function configureRenderer(renderer) {
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 3));
+        renderer.setClearColor(0x000000, 0);
+        renderer.shadowMap.enabled = true;
+        renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+        renderer.physicallyCorrectLights = true;
+        renderer.toneMapping = THREE.ACESFilmicToneMapping;
+        renderer.toneMappingExposure = 1.12;
+        if (THREE.sRGBEncoding) renderer.outputEncoding = THREE.sRGBEncoding;
+    }
+
+    function makeTexture(drawFn, size = 2048) {
+        const canvas = document.createElement("canvas");
+        canvas.width = size;
+        canvas.height = size;
+        const ctx = canvas.getContext("2d");
+        ctx.imageSmoothingEnabled = true;
+        ctx.imageSmoothingQuality = "high";
+        drawFn(ctx, size);
+
+        const texture = new THREE.CanvasTexture(canvas);
+        texture.generateMipmaps = true;
+        texture.minFilter = THREE.LinearMipmapLinearFilter;
+        texture.magFilter = THREE.LinearFilter;
+        if (THREE.sRGBEncoding) texture.encoding = THREE.sRGBEncoding;
+        return texture;
+    }
+
+    function noise(ctx, x, y, width, height, alpha = 0.12) {
+        const img = ctx.getImageData(x, y, width, height);
+        for (let i = 0; i < img.data.length; i += 4) {
+            const value = (Math.random() - 0.5) * 120 * alpha;
+            img.data[i] += value;
+            img.data[i + 1] += value;
+            img.data[i + 2] += value;
+        }
+        ctx.putImageData(img, x, y);
+    }
+
+    function createAtmosphereMesh(color, opacity = 0.25) {
+        const material = new THREE.ShaderMaterial({
+            uniforms: {
+                glowColor: { value: new THREE.Color(color) },
+                glowOpacity: { value: opacity }
+            },
+            vertexShader: `
+                varying vec3 vNormal;
+                void main() {
+                    vNormal = normalize(normalMatrix * normal);
+                    gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+                }
+            `,
+            fragmentShader: `
+                varying vec3 vNormal;
+                uniform vec3 glowColor;
+                uniform float glowOpacity;
+                void main() {
+                    float rim = pow(1.0 - max(dot(vNormal, vec3(0.0, 0.0, 1.0)), 0.0), 2.25);
+                    gl_FragColor = vec4(glowColor, rim * glowOpacity);
+                }
+            `,
+            side: THREE.BackSide,
+            blending: THREE.AdditiveBlending,
+            transparent: true,
+            depthWrite: false
+        });
+
+        return new THREE.Mesh(new THREE.SphereGeometry(1.075, 128, 128), material);
+    }
+
+    function buildPlanet(canvasId, options) {
+        const canvas = document.getElementById(canvasId);
+        if (!canvas) return;
+
+        const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true, powerPreference: "high-performance" });
+        configureRenderer(renderer);
+
+        const parent = canvas.parentElement;
+        const width = parent.clientWidth;
+        const height = parent.clientHeight;
+        renderer.setSize(width, height, false);
+
+        const scene = new THREE.Scene();
+        scene.fog = new THREE.FogExp2(0x020205, 0.012);
+
+        const camera = new THREE.PerspectiveCamera(45, width / height, 0.1, 1000);
+        camera.position.z = options.camZ || 2.8;
+
+        scene.add(new THREE.AmbientLight(0xffffff, options.ambientIntensity || 0.08));
+        scene.add(new THREE.HemisphereLight(0x8ab7ff, 0x050510, options.hemisphereIntensity || 0.18));
+
+        const sun = new THREE.DirectionalLight(options.lightColor || 0xffffff, options.lightIntensity || 2.5);
+        sun.position.set(-5.5, 2.5, 4.5);
+        sun.castShadow = true;
+        scene.add(sun);
+
+        const rimLight = new THREE.DirectionalLight(0x66d9ff, options.rimIntensity || 0.55);
+        rimLight.position.set(4, -1, -5);
+        scene.add(rimLight);
+
+        const warmFill = new THREE.PointLight(0xffb15f, options.fillIntensity || 0.35, 12);
+        warmFill.position.set(3.5, 2.5, 2);
+        scene.add(warmFill);
+
+        const texture = makeTexture((ctx, size) => options.drawTexture(ctx, size), options.textureSize || 2048);
+        texture.anisotropy = renderer.capabilities.getMaxAnisotropy();
+
+        const materialOptions = {
+            map: texture,
+            roughness: options.roughness || 0.8,
+            metalness: options.metalness || 0
+        };
+
+        if (options.bumpScale !== 0) {
+            materialOptions.bumpMap = texture;
+            materialOptions.bumpScale = options.bumpScale || 0.018;
+        }
+
+        const material = THREE.MeshPhysicalMaterial
+            ? new THREE.MeshPhysicalMaterial({
+                ...materialOptions,
+                clearcoat: options.clearcoat || 0,
+                clearcoatRoughness: options.clearcoatRoughness || 0.7
+            })
+            : new THREE.MeshStandardMaterial(materialOptions);
+
+        const sphere = new THREE.Mesh(new THREE.SphereGeometry(1, 128, 128), material);
+        sphere.castShadow = true;
+        sphere.receiveShadow = true;
+        if (options.axialTilt) sphere.rotation.z = options.axialTilt;
+        scene.add(sphere);
+
+        if (options.atmosphereColor) {
+            scene.add(createAtmosphereMesh(options.atmosphereColor, options.atmosphereOpacity));
+        }
+
+        if (options.rings) {
+            options.rings.forEach((ringOptions) => {
+                const ringTexture = makeTexture((ctx, size) => {
+                    const gradient = ctx.createRadialGradient(size / 2, size / 2, size * ringOptions.inner / ringOptions.outer * 0.5, size / 2, size / 2, size / 2);
+                    ringOptions.stops.forEach(([position, color]) => gradient.addColorStop(position, color));
+                    ctx.fillStyle = gradient;
+                    ctx.fillRect(0, 0, size, size);
+                }, ringOptions.textureSize || 1024);
+
+                ringTexture.anisotropy = renderer.capabilities.getMaxAnisotropy();
+                const ring = new THREE.Mesh(
+                    new THREE.RingGeometry(ringOptions.inner, ringOptions.outer, 256),
+                    new THREE.MeshBasicMaterial({
+                        map: ringTexture,
+                        side: THREE.DoubleSide,
+                        transparent: true,
+                        depthWrite: false,
+                        blending: THREE.AdditiveBlending,
+                        opacity: ringOptions.opacity || 0.95
+                    })
+                );
+                ring.rotation.x = ringOptions.tilt || Math.PI * 0.42;
+                scene.add(ring);
+            });
+        }
+
+        const starGeo = new THREE.BufferGeometry();
+        const starPositions = [];
+        const starColors = [];
+        const palette = [new THREE.Color(0xffffff), new THREE.Color(0x9ee7ff), new THREE.Color(0xffd28a)];
+
+        for (let i = 0; i < 1800; i++) {
+            const theta = Math.random() * Math.PI * 2;
+            const phi = Math.acos(2 * Math.random() - 1);
+            const radius = 40 + Math.random() * 20;
+            starPositions.push(
+                radius * Math.sin(phi) * Math.cos(theta),
+                radius * Math.sin(phi) * Math.sin(theta),
+                radius * Math.cos(phi)
+            );
+            const color = palette[Math.floor(Math.random() * palette.length)];
+            starColors.push(color.r, color.g, color.b);
+        }
+
+        starGeo.setAttribute("position", new THREE.Float32BufferAttribute(starPositions, 3));
+        starGeo.setAttribute("color", new THREE.Float32BufferAttribute(starColors, 3));
+
+        const starField = new THREE.Points(starGeo, new THREE.PointsMaterial({
+            size: 0.1,
+            vertexColors: true,
+            transparent: true,
+            opacity: 0.86,
+            blending: THREE.AdditiveBlending,
+            sizeAttenuation: true
+        }));
+        scene.add(starField);
+
+        let mouseX = 0;
+        let mouseY = 0;
+        canvas.addEventListener("mousemove", (event) => {
+            const rect = canvas.getBoundingClientRect();
+            mouseX = ((event.clientX - rect.left) / rect.width - 0.5) * 0.3;
+            mouseY = ((event.clientY - rect.top) / rect.height - 0.5) * 0.3;
+        });
+
+        function animate() {
+            requestAnimationFrame(animate);
+            sphere.rotation.y += options.rotSpeed || 0.003;
+            starField.rotation.y += 0.00016;
+            camera.position.x += (mouseX - camera.position.x) * 0.04;
+            camera.position.y += (-mouseY - camera.position.y) * 0.04;
+            camera.lookAt(scene.position);
+            renderer.render(scene, camera);
+        }
+
+        animate();
+        scenes[canvasId] = { renderer, camera, canvas };
+    }
+
+    buildPlanet("canvas-mercury", {
+        rotSpeed: 0.002,
+        roughness: 0.95,
+        bumpScale: 0.035,
+        lightColor: 0xfff5dd,
+        lightIntensity: 3,
+        drawTexture(ctx, size) {
+            const scale = size / 512;
+            ctx.fillStyle = "#7a7a7a";
+            ctx.fillRect(0, 0, size, size);
+
+            for (let i = 0; i < 150; i++) {
+                const x = Math.random() * size;
+                const y = Math.random() * size;
+                const radius = (4 + Math.random() * 32) * scale;
+                const gradient = ctx.createRadialGradient(x, y, 0, x, y, radius);
+                gradient.addColorStop(0, "rgba(50,50,50,0.8)");
+                gradient.addColorStop(0.62, "rgba(100,100,100,0.4)");
+                gradient.addColorStop(1, "rgba(130,130,130,0)");
+                ctx.fillStyle = gradient;
+                ctx.beginPath();
+                ctx.arc(x, y, radius, 0, Math.PI * 2);
+                ctx.fill();
+            }
+
+            for (let i = 0; i < 34; i++) {
+                const x = Math.random() * size;
+                const y = Math.random() * size;
+                const gradient = ctx.createRadialGradient(x, y, 0, x, y, (60 + Math.random() * 80) * scale);
+                gradient.addColorStop(0, "rgba(160,140,110,0.4)");
+                gradient.addColorStop(1, "rgba(0,0,0,0)");
+                ctx.fillStyle = gradient;
+                ctx.beginPath();
+                ctx.arc(x, y, 80 * scale, 0, Math.PI * 2);
+                ctx.fill();
+            }
+            noise(ctx, 0, 0, size, size, 0.18);
+        }
+    });
+
+    buildPlanet("canvas-venus", {
+        rotSpeed: 0.001,
+        roughness: 0.6,
+        bumpScale: 0.008,
+        clearcoat: 0.12,
+        atmosphereColor: 0xffcc66,
+        atmosphereOpacity: 0.25,
+        lightColor: 0xffeedd,
+        drawTexture(ctx, size) {
+            const scale = size / 512;
+            const gradient = ctx.createLinearGradient(0, 0, size, size);
+            gradient.addColorStop(0, "#e8c46a");
+            gradient.addColorStop(0.3, "#d4943a");
+            gradient.addColorStop(0.7, "#c07020");
+            gradient.addColorStop(1, "#e8b050");
+            ctx.fillStyle = gradient;
+            ctx.fillRect(0, 0, size, size);
+
+            for (let y = 0; y < size; y += 8 * scale) {
+                ctx.beginPath();
+                ctx.moveTo(0, y);
+                for (let x = 0; x < size; x += 4 * scale) {
+                    ctx.lineTo(x, y + Math.sin(x * 0.02 + y * 0.01) * 8 * scale);
+                }
+                ctx.strokeStyle = `rgba(255,200,100,${0.05 + Math.random() * 0.08})`;
+                ctx.lineWidth = (3 + Math.random() * 5) * scale;
+                ctx.stroke();
+            }
+            noise(ctx, 0, 0, size, size, 0.12);
+        }
+    });
+
+    buildPlanet("canvas-mars", {
+        rotSpeed: 0.0038,
+        roughness: 0.9,
+        bumpScale: 0.028,
+        lightColor: 0xffddb0,
+        lightIntensity: 2.2,
+        drawTexture(ctx, size) {
+            const scale = size / 512;
+            const gradient = ctx.createLinearGradient(0, 0, size, size);
+            gradient.addColorStop(0, "#c0441c");
+            gradient.addColorStop(0.4, "#a33010");
+            gradient.addColorStop(0.7, "#bb4020");
+            gradient.addColorStop(1, "#8a2808");
+            ctx.fillStyle = gradient;
+            ctx.fillRect(0, 0, size, size);
+
+            ctx.fillStyle = "rgba(240,240,255,0.6)";
+            ctx.beginPath();
+            ctx.ellipse(size / 2, size * 0.08, size * 0.2, size * 0.06, 0, 0, Math.PI * 2);
+            ctx.fill();
+
+            for (let i = 0; i < 55; i++) {
+                const x = Math.random() * size;
+                const y = Math.random() * size;
+                const radius = (18 + Math.random() * 78) * scale;
+                const glow = ctx.createRadialGradient(x, y, 0, x, y, radius);
+                glow.addColorStop(0, "rgba(180,80,30,0.4)");
+                glow.addColorStop(1, "rgba(0,0,0,0)");
+                ctx.fillStyle = glow;
+                ctx.beginPath();
+                ctx.arc(x, y, radius, 0, Math.PI * 2);
+                ctx.fill();
+            }
+
+            ctx.strokeStyle = "rgba(80,20,5,0.6)";
+            ctx.lineWidth = 6 * scale;
+            ctx.beginPath();
+            ctx.moveTo(size * 0.25, size * 0.48);
+            ctx.lineTo(size * 0.75, size * 0.52);
+            ctx.stroke();
+            noise(ctx, 0, 0, size, size, 0.16);
+        }
+    });
+
+    buildPlanet("canvas-jupiter", {
+        rotSpeed: 0.007,
+        roughness: 0.68,
+        bumpScale: 0.006,
+        clearcoat: 0.04,
+        camZ: 2.5,
+        atmosphereColor: 0xffd7a0,
+        atmosphereOpacity: 0.11,
+        lightIntensity: 2.75,
+        textureSize: 2048,
+        drawTexture(ctx, size) {
+            const scale = size / 512;
+            ctx.fillStyle = "#b99568";
+            ctx.fillRect(0, 0, size, size);
+
+            const bands = ["#d6b684", "#b78758", "#ead1a0", "#8f623e", "#c59a68", "#f0d9ad", "#a36d45", "#d0a879", "#775038", "#e5c391", "#ba8353", "#f2ddb8"];
+            let y = 0;
+            let bandIndex = 0;
+
+            while (y < size) {
+                const height = (18 + Math.random() * 34) * scale;
+                ctx.fillStyle = bands[bandIndex % bands.length];
+                ctx.fillRect(0, y, size, height + 2 * scale);
+
+                for (let layer = 0; layer < 4; layer++) {
+                    const amp = (2 + Math.random() * 7) * scale;
+                    const freq = 0.007 + Math.random() * 0.017;
+                    const offset = y + Math.random() * height;
+                    ctx.beginPath();
+                    ctx.moveTo(0, offset);
+                    for (let x = 0; x <= size; x += 3 * scale) {
+                        ctx.lineTo(x, offset + Math.sin(x * freq + bandIndex * 1.7) * amp + Math.sin(x * freq * 0.37) * amp * 0.55);
+                    }
+                    ctx.strokeStyle = layer % 2 === 0 ? "rgba(255,255,255,0.105)" : "rgba(55,32,22,0.12)";
+                    ctx.lineWidth = (1.4 + Math.random() * 2.8) * scale;
+                    ctx.stroke();
+                }
+
+                y += height;
+                bandIndex++;
+            }
+
+            for (let i = 0; i < 115; i++) {
+                const yy = Math.random() * size;
+                const amp = (1 + Math.random() * 5) * scale;
+                const len = (80 + Math.random() * 260) * scale;
+                const start = Math.random() * size;
+                ctx.beginPath();
+                ctx.moveTo(start, yy);
+                for (let x = 0; x < len; x += 4 * scale) {
+                    ctx.lineTo(start + x, yy + Math.sin(x * 0.035 + i) * amp);
+                }
+                ctx.strokeStyle = Math.random() > 0.45 ? "rgba(255,238,205,0.11)" : "rgba(70,42,26,0.13)";
+                ctx.lineWidth = (1 + Math.random() * 2.6) * scale;
+                ctx.stroke();
+            }
+
+            [0.18, 0.31, 0.44, 0.57, 0.68, 0.78].forEach((line, index) => {
+                const yy = size * line;
+                ctx.beginPath();
+                ctx.moveTo(0, yy);
+                for (let x = 0; x <= size; x += 4 * scale) {
+                    ctx.lineTo(x, yy + Math.sin(x * 0.012 + index) * 9 * scale);
+                }
+                ctx.strokeStyle = index % 2 ? "rgba(80,45,24,0.22)" : "rgba(247,220,172,0.16)";
+                ctx.lineWidth = (5 + Math.random() * 9) * scale;
+                ctx.stroke();
+            });
+
+            const spotX = size * 0.58;
+            const spotY = size * 0.58;
+            const spotRX = size * 0.1;
+            const spotRY = size * 0.055;
+            ctx.save();
+            ctx.translate(spotX, spotY);
+            ctx.rotate(-0.08);
+
+            const halo = ctx.createRadialGradient(0, 0, spotRX * 0.15, 0, 0, spotRX * 1.3);
+            halo.addColorStop(0, "rgba(201,95,50,0.78)");
+            halo.addColorStop(0.45, "rgba(151,67,42,0.55)");
+            halo.addColorStop(0.72, "rgba(238,204,158,0.24)");
+            halo.addColorStop(1, "rgba(0,0,0,0)");
+            ctx.fillStyle = halo;
+            ctx.beginPath();
+            ctx.ellipse(0, 0, spotRX * 1.25, spotRY * 1.35, 0, 0, Math.PI * 2);
+            ctx.fill();
+
+            const eye = ctx.createRadialGradient(0, 0, 0, 0, 0, spotRX);
+            eye.addColorStop(0, "#d88b67");
+            eye.addColorStop(0.42, "#a94c32");
+            eye.addColorStop(1, "rgba(89,41,30,0.08)");
+            ctx.fillStyle = eye;
+            ctx.beginPath();
+            ctx.ellipse(0, 0, spotRX, spotRY, 0, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.strokeStyle = "rgba(255,226,183,0.32)";
+            ctx.lineWidth = 3 * scale;
+            ctx.stroke();
+            ctx.restore();
+            noise(ctx, 0, 0, size, size, 0.075);
+        }
+    });
+
+    buildPlanet("canvas-saturn", {
+        rotSpeed: 0.006,
+        roughness: 0.55,
+        bumpScale: 0.004,
+        clearcoat: 0.06,
+        camZ: 3.5,
+        rings: [{
+            inner: 1.3,
+            outer: 2.5,
+            tilt: Math.PI * 0.42,
+            stops: [[0, "rgba(0,0,0,0)"], [0.1, "rgba(200,170,110,0.7)"], [0.35, "rgba(220,190,130,0.9)"], [0.55, "rgba(190,160,100,0.6)"], [0.75, "rgba(210,180,120,0.4)"], [1, "rgba(0,0,0,0)"]]
+        }],
+        drawTexture(ctx, size) {
+            const scale = size / 512;
+            const bands = ["#d4b060", "#c8a040", "#dcc070", "#b89040", "#d0a850", "#c09040"];
+            const bandHeight = size / bands.length;
+            bands.forEach((color, index) => {
+                ctx.fillStyle = color;
+                ctx.fillRect(0, index * bandHeight, size, bandHeight + 2 * scale);
+            });
+            for (let i = 1; i < bands.length; i++) {
+                ctx.beginPath();
+                ctx.moveTo(0, i * bandHeight);
+                for (let x = 0; x < size; x += 4 * scale) {
+                    ctx.lineTo(x, i * bandHeight + Math.sin(x * 0.02) * 4 * scale);
+                }
+                ctx.strokeStyle = "rgba(0,0,0,0.1)";
+                ctx.lineWidth = 2 * scale;
+                ctx.stroke();
+            }
+            noise(ctx, 0, 0, size, size, 0.09);
+        }
+    });
+
+    buildPlanet("canvas-uranus", {
+        rotSpeed: 0.003,
+        axialTilt: Math.PI * 0.49,
+        roughness: 0.4,
+        bumpScale: 0.002,
+        clearcoat: 0.1,
+        atmosphereColor: 0x44eedd,
+        atmosphereOpacity: 0.2,
+        rings: [{
+            inner: 1.2,
+            outer: 1.6,
+            tilt: Math.PI * 0.02,
+            stops: [[0, "rgba(0,0,0,0)"], [0.3, "rgba(100,220,210,0.3)"], [0.7, "rgba(80,200,190,0.2)"], [1, "rgba(0,0,0,0)"]]
+        }],
+        drawTexture(ctx, size) {
+            const scale = size / 512;
+            const gradient = ctx.createLinearGradient(0, 0, 0, size);
+            gradient.addColorStop(0, "#5ddecc");
+            gradient.addColorStop(0.3, "#45ccbb");
+            gradient.addColorStop(0.7, "#55ddcc");
+            gradient.addColorStop(1, "#3bbba9");
+            ctx.fillStyle = gradient;
+            ctx.fillRect(0, 0, size, size);
+            for (let i = 0; i < 8; i++) {
+                const y = size * (0.1 + i * 0.1);
+                ctx.strokeStyle = `rgba(255,255,255,${0.03 + Math.random() * 0.05})`;
+                ctx.lineWidth = (8 + Math.random() * 20) * scale;
+                ctx.beginPath();
+                ctx.moveTo(0, y);
+                ctx.lineTo(size, y + (Math.random() * 10 - 5) * scale);
+                ctx.stroke();
+            }
+            noise(ctx, 0, 0, size, size, 0.08);
+        }
+    });
+
+    buildPlanet("canvas-neptune", {
+        rotSpeed: 0.0042,
+        roughness: 0.62,
+        bumpScale: 0.002,
+        clearcoat: 0.05,
+        atmosphereColor: 0x3d8bff,
+        atmosphereOpacity: 0.25,
+        lightIntensity: 2.45,
+        rimIntensity: 0.8,
+        textureSize: 2048,
+        drawTexture(ctx, size) {
+            const scale = size / 512;
+            const gradient = ctx.createLinearGradient(0, 0, size, size);
+            gradient.addColorStop(0, "#071431");
+            gradient.addColorStop(0.24, "#12336c");
+            gradient.addColorStop(0.55, "#1d5d9f");
+            gradient.addColorStop(0.78, "#102d71");
+            gradient.addColorStop(1, "#06102c");
+            ctx.fillStyle = gradient;
+            ctx.fillRect(0, 0, size, size);
+
+            for (let i = 0; i < 28; i++) {
+                const y = (i / 28) * size + (Math.random() - 0.5) * 10 * scale;
+                const amp = (3 + Math.random() * 10) * scale;
+                const freq = 0.008 + Math.random() * 0.002;
+                ctx.beginPath();
+                ctx.moveTo(0, y);
+                for (let x = 0; x <= size; x += 5 * scale) {
+                    ctx.lineTo(x, y + Math.sin(x * freq + i) * amp);
+                }
+                ctx.strokeStyle = i % 3 === 0 ? "rgba(111,178,232,0.13)" : "rgba(4,20,68,0.18)";
+                ctx.lineWidth = (5 + Math.random() * 13) * scale;
+                ctx.stroke();
+            }
+
+            for (let i = 0; i < 42; i++) {
+                const x0 = Math.random() * size;
+                const y = (0.15 + Math.random() * 0.72) * size;
+                const len = (55 + Math.random() * 220) * scale;
+                const amp = (1 + Math.random() * 5) * scale;
+                ctx.beginPath();
+                ctx.moveTo(x0, y);
+                for (let x = 0; x < len; x += 5 * scale) {
+                    ctx.lineTo(x0 + x, y + Math.sin(x * 0.04 + i) * amp);
+                }
+                ctx.strokeStyle = Math.random() > 0.35 ? "rgba(171,220,255,0.16)" : "rgba(14,48,126,0.18)";
+                ctx.lineWidth = (1.4 + Math.random() * 4) * scale;
+                ctx.stroke();
+            }
+
+            const stormX = size * 0.43;
+            const stormY = size * 0.46;
+            const darkSpot = ctx.createRadialGradient(stormX, stormY, 0, stormX, stormY, size * 0.13);
+            darkSpot.addColorStop(0, "rgba(2,7,38,0.72)");
+            darkSpot.addColorStop(0.45, "rgba(8,21,82,0.42)");
+            darkSpot.addColorStop(0.76, "rgba(82,157,226,0.16)");
+            darkSpot.addColorStop(1, "rgba(0,0,0,0)");
+            ctx.fillStyle = darkSpot;
+            ctx.beginPath();
+            ctx.ellipse(stormX, stormY, size * 0.095, size * 0.052, -0.12, 0, Math.PI * 2);
+            ctx.fill();
+
+            const cloud = ctx.createLinearGradient(stormX - size * 0.13, stormY - size * 0.04, stormX + size * 0.16, stormY + size * 0.04);
+            cloud.addColorStop(0, "rgba(255,255,255,0)");
+            cloud.addColorStop(0.45, "rgba(204,234,255,0.35)");
+            cloud.addColorStop(1, "rgba(255,255,255,0)");
+            ctx.strokeStyle = cloud;
+            ctx.lineWidth = 5 * scale;
+            ctx.beginPath();
+            ctx.moveTo(stormX - size * 0.15, stormY + size * 0.045);
+            ctx.bezierCurveTo(stormX - size * 0.05, stormY + size * 0.01, stormX + size * 0.06, stormY + size * 0.08, stormX + size * 0.18, stormY + size * 0.02);
+            ctx.stroke();
+            noise(ctx, 0, 0, size, size, 0.055);
+        }
+    });
+
+    window.addEventListener("resize", () => {
+        Object.values(scenes).forEach(({ renderer, camera, canvas }) => {
+            const parent = canvas.parentElement;
+            const width = parent.clientWidth;
+            const height = parent.clientHeight;
+            renderer.setSize(width, height, false);
+            camera.aspect = width / height;
+            camera.updateProjectionMatrix();
+        });
+    });
+    </script>
+</body>
+</html>
