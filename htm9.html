@@ -16,7 +16,7 @@
             --accent-warm: #ffb84d;
             --accent-violet: #b68cff;
             --text: #ffffff;
-            --bg: #020205;
+            --bg: #000000;
             --glass: rgba(8, 12, 25, 0.56);
             --border: rgba(255, 255, 255, 0.22);
         }
@@ -39,11 +39,7 @@
             font-family: "Space Grotesk", "Noto Sans", sans-serif;
             overflow-x: hidden;
             isolation: isolate;
-            background:
-                radial-gradient(circle at 12% 18%, rgba(0, 242, 255, 0.16), transparent 28%),
-                radial-gradient(circle at 82% 34%, rgba(255, 184, 77, 0.10), transparent 24%),
-                radial-gradient(circle at 50% 88%, rgba(182, 140, 255, 0.10), transparent 28%),
-                linear-gradient(140deg, #020205 0%, #050711 48%, #010104 100%);
+            background: #000;
         }
 
         html[lang="hy"] body {
@@ -58,15 +54,9 @@
             content: "";
             position: fixed;
             inset: 0;
-            z-index: -1;
+            z-index: 0;
             pointer-events: none;
-            background:
-                linear-gradient(115deg, rgba(255,255,255,0.08), rgba(255,255,255,0.012) 32%, rgba(0,242,255,0.04) 58%, rgba(255,184,77,0.03)),
-                repeating-linear-gradient(90deg, rgba(255,255,255,0.035) 0 1px, transparent 1px 160px);
-            backdrop-filter: blur(1.5px) saturate(125%);
-            -webkit-backdrop-filter: blur(1.5px) saturate(125%);
-            mask-image: radial-gradient(circle at center, rgba(0,0,0,0.72), rgba(0,0,0,0.22) 72%, transparent 100%);
-            -webkit-mask-image: radial-gradient(circle at center, rgba(0,0,0,0.72), rgba(0,0,0,0.22) 72%, transparent 100%);
+            background: radial-gradient(circle at center, transparent 0%, rgba(0, 0, 0, 0.36) 68%, rgba(0, 0, 0, 0.88) 100%);
         }
 
         .noise,
@@ -83,20 +73,48 @@
         }
 
         .star-field {
-            z-index: -2;
-            background:
-                radial-gradient(1px 1px at 10% 20%, #fff, transparent),
-                radial-gradient(1.5px 1.5px at 50% 50%, var(--accent), transparent),
-                radial-gradient(1px 1px at 80% 80%, #fff, transparent),
-                radial-gradient(1.4px 1.4px at 30% 72%, var(--accent-warm), transparent),
-                radial-gradient(1px 1px at 72% 18%, var(--accent-violet), transparent);
-            background-size: 300px 300px, 420px 420px, 520px 520px, 680px 680px, 760px 760px;
-            animation: starDrift 48s linear infinite;
+            z-index: 0;
+            overflow: hidden;
+            background: #000;
+        }
+
+        .star-field::before,
+        .star-field::after {
+            content: "";
+            position: absolute;
+            inset: -25%;
+            background-image:
+                radial-gradient(circle, rgba(255,255,255,0.95) 0 0.55px, transparent 0.9px),
+                radial-gradient(circle, rgba(150,215,255,0.86) 0 0.65px, transparent 1px),
+                radial-gradient(circle, rgba(255,222,168,0.72) 0 0.62px, transparent 1px),
+                radial-gradient(circle, rgba(255,255,255,0.52) 0 0.45px, transparent 0.75px);
+            background-position: 0 0, 7px 11px, 19px 3px, 31px 23px;
+            background-size: 9px 9px, 17px 17px, 29px 29px, 43px 43px;
+            opacity: 0.92;
+            animation: starDrift 140s linear infinite, starTwinkle 7s ease-in-out infinite;
+        }
+
+        .star-field::after {
+            inset: -12%;
+            background-image:
+                radial-gradient(circle, rgba(255,255,255,1) 0 1.1px, transparent 1.7px),
+                radial-gradient(circle, rgba(0,242,255,0.72) 0 1px, transparent 1.8px),
+                radial-gradient(circle, rgba(255,184,77,0.62) 0 1px, transparent 1.7px);
+            background-position: 23px 41px, 91px 17px, 151px 89px;
+            background-size: 120px 120px, 180px 180px, 260px 260px;
+            filter: drop-shadow(0 0 5px rgba(255,255,255,0.55));
+            opacity: 0.85;
+            animation-duration: 220s, 9s;
         }
 
         @keyframes starDrift {
             from { transform: translate3d(0, 0, 0); }
-            to { transform: translate3d(-160px, 120px, 0); }
+            to { transform: translate3d(-360px, 240px, 0); }
+        }
+
+        @keyframes starTwinkle {
+            0%, 100% { opacity: 0.88; }
+            50% { opacity: 0.62; }
         }
 
         .nav-bar {
@@ -289,64 +307,6 @@
             line-height: 1.65;
         }
 
-        .audio-player {
-            width: fit-content;
-            display: flex;
-            align-items: center;
-            gap: 15px;
-            padding: 10px 18px;
-            border: 1px solid rgba(255, 255, 255, 0.16);
-            border-radius: 100px;
-            background: linear-gradient(135deg, rgba(255,255,255,0.12), rgba(255,255,255,0.035));
-            backdrop-filter: blur(18px) saturate(170%);
-            -webkit-backdrop-filter: blur(18px) saturate(170%);
-        }
-
-        .play-btn {
-            width: 32px;
-            height: 32px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border-radius: 50%;
-            background: var(--accent);
-            transition: 0.2s ease;
-        }
-
-        .play-btn:hover {
-            transform: scale(1.1);
-            filter: brightness(1.2);
-        }
-
-        .audio-wave {
-            height: 12px;
-            display: flex;
-            align-items: center;
-            gap: 3px;
-        }
-
-        .audio-wave span {
-            width: 2px;
-            height: 4px;
-            border-radius: 2px;
-            background: var(--accent);
-            opacity: 0.35;
-        }
-
-        .playing span {
-            animation: wave 1s ease-in-out infinite;
-            opacity: 1;
-        }
-
-        .playing span:nth-child(2) { animation-delay: 0.15s; }
-        .playing span:nth-child(3) { animation-delay: 0.3s; }
-        .playing span:nth-child(4) { animation-delay: 0.45s; }
-
-        @keyframes wave {
-            0%, 100% { height: 4px; }
-            50% { height: 12px; }
-        }
-
         .cursor-dot,
         .cursor-ring {
             position: fixed;
@@ -370,6 +330,90 @@
             mix-blend-mode: difference;
         }
 
+        .site-footer {
+            position: relative;
+            z-index: 2;
+            width: 100%;
+            padding: 70px 8% 54px;
+            border-top: 1px solid rgba(255, 255, 255, 0.14);
+            background: linear-gradient(180deg, rgba(0,0,0,0.28), rgba(0,0,0,0.92));
+        }
+
+        .footer-inner {
+            width: min(1240px, 100%);
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: minmax(260px, 1.1fr) minmax(260px, 0.9fr);
+            gap: 34px;
+            align-items: start;
+        }
+
+        .footer-kicker {
+            display: block;
+            margin-bottom: 12px;
+            color: var(--accent);
+            font-size: 0.72rem;
+            font-weight: 700;
+            letter-spacing: 0.22em;
+            text-transform: uppercase;
+        }
+
+        .footer-title {
+            max-width: 620px;
+            font-size: clamp(2rem, 4vw, 3.5rem);
+            line-height: 1;
+            font-weight: 700;
+            background: linear-gradient(to bottom, #fff, rgba(255,255,255,0.5));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .footer-text {
+            max-width: 520px;
+            margin-top: 18px;
+            color: rgba(255,255,255,0.7);
+            font-size: 1rem;
+            line-height: 1.7;
+        }
+
+        .footer-links {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            justify-content: flex-end;
+        }
+
+        .footer-links a {
+            padding: 10px 12px;
+            border: 1px solid rgba(255,255,255,0.14);
+            border-radius: 8px;
+            color: rgba(255,255,255,0.74);
+            font-size: 0.76rem;
+            font-weight: 700;
+            letter-spacing: 0.08em;
+            text-decoration: none;
+            text-transform: uppercase;
+            background: rgba(255,255,255,0.035);
+            transition: 0.25s ease;
+        }
+
+        .footer-links a:hover {
+            color: #001014;
+            border-color: transparent;
+            background: linear-gradient(135deg, var(--accent), var(--accent-warm));
+        }
+
+        .footer-bottom {
+            width: min(1240px, 100%);
+            margin: 36px auto 0;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            gap: 14px;
+            color: rgba(255,255,255,0.5);
+            font-size: 0.82rem;
+        }
+
         @media (max-width: 1000px) {
             .split-section,
             .reverse {
@@ -381,10 +425,6 @@
             .planet-wrap {
                 min-width: 100%;
                 height: 42vh;
-            }
-
-            .audio-player {
-                margin: 0 auto;
             }
 
             .physics-card h2 {
@@ -416,6 +456,19 @@
             section {
                 padding-right: 5%;
                 padding-left: 5%;
+            }
+
+            .site-footer {
+                padding-right: 5%;
+                padding-left: 5%;
+            }
+
+            .footer-inner {
+                grid-template-columns: 1fr;
+            }
+
+            .footer-links {
+                justify-content: flex-start;
             }
         }
     </style>
@@ -450,11 +503,6 @@
             <span class="tag" data-i18n="blackHole.tag">Singularity</span>
             <h2 data-i18n="blackHole.title">Black Hole</h2>
             <p data-i18n="blackHole.text">A region where gravity is so intense that the escape velocity exceeds the speed of light, c. Spacetime curvature becomes infinite at the center - not even photons can escape.</p>
-            <div class="audio-player">
-                <div class="play-btn"><svg viewBox="0 0 24 24" width="16" height="16" fill="black"><path d="M8 5v14l11-7z"/></svg></div>
-                <div class="audio-wave"><span></span><span></span><span></span><span></span></div>
-                <audio src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3"></audio>
-            </div>
         </div>
         <div class="planet-wrap">
             <div class="spline-wrap">
@@ -468,11 +516,6 @@
             <span class="tag" data-i18n="solarSystem.tag">The Sun</span>
             <h2 data-i18n="solarSystem.title">Solar System</h2>
             <p data-i18n="solarSystem.text">Our star system consists of a G2V yellow dwarf and the objects that orbit it, bound by Newton's law of universal gravitation. Eight planets trace elliptical paths through spacetime.</p>
-            <div class="audio-player">
-                <div class="play-btn"><svg viewBox="0 0 24 24" width="16" height="16" fill="black"><path d="M8 5v14l11-7z"/></svg></div>
-                <div class="audio-wave"><span></span><span></span><span></span><span></span></div>
-                <audio src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3"></audio>
-            </div>
         </div>
         <div class="planet-wrap">
             <div class="spline-wrap">
@@ -486,11 +529,6 @@
             <span class="tag" data-i18n="mercury.tag">Planet I</span>
             <h2 data-i18n="mercury.title">Mercury</h2>
             <p data-i18n="mercury.text">The smallest planet. Because it lacks an atmosphere, temperatures fluctuate from 430°C to -180°C. Its heavily cratered surface bears the scars of a violent solar system youth.</p>
-            <div class="audio-player">
-                <div class="play-btn"><svg viewBox="0 0 24 24" width="16" height="16" fill="black"><path d="M8 5v14l11-7z"/></svg></div>
-                <div class="audio-wave"><span></span><span></span><span></span><span></span></div>
-                <audio src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-3.mp3"></audio>
-            </div>
         </div>
         <div class="planet-wrap">
             <canvas class="planet-canvas" id="canvas-mercury"></canvas>
@@ -502,11 +540,6 @@
             <span class="tag" data-i18n="venus.tag">Planet II</span>
             <h2 data-i18n="venus.title">Venus</h2>
             <p data-i18n="venus.text">The hottest planet. A runaway greenhouse effect traps solar energy, creating surface pressures 90 times that of Earth and temperatures hot enough to melt lead.</p>
-            <div class="audio-player">
-                <div class="play-btn"><svg viewBox="0 0 24 24" width="16" height="16" fill="black"><path d="M8 5v14l11-7z"/></svg></div>
-                <div class="audio-wave"><span></span><span></span><span></span><span></span></div>
-                <audio src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-4.mp3"></audio>
-            </div>
         </div>
         <div class="planet-wrap">
             <canvas class="planet-canvas" id="canvas-venus"></canvas>
@@ -518,11 +551,6 @@
             <span class="tag" data-i18n="earth.tag">Planet III</span>
             <h2 data-i18n="earth.title">Earth</h2>
             <p data-i18n="earth.text">Our home. The only known world with liquid water and an atmosphere containing 21% oxygen, vital for life. A magnetic field shields us from cosmic radiation.</p>
-            <div class="audio-player">
-                <div class="play-btn"><svg viewBox="0 0 24 24" width="16" height="16" fill="black"><path d="M8 5v14l11-7z"/></svg></div>
-                <div class="audio-wave"><span></span><span></span><span></span><span></span></div>
-                <audio src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-5.mp3"></audio>
-            </div>
         </div>
         <div class="planet-wrap">
             <div class="spline-wrap">
@@ -536,11 +564,6 @@
             <span class="tag" data-i18n="mars.tag">Planet IV</span>
             <h2 data-i18n="mars.title">Mars</h2>
             <p data-i18n="mars.text">The Red Planet. Its rusted iron surface and thin atmosphere make it a prime candidate for future human colonization. Olympus Mons is the tallest volcano in the solar system.</p>
-            <div class="audio-player">
-                <div class="play-btn"><svg viewBox="0 0 24 24" width="16" height="16" fill="black"><path d="M8 5v14l11-7z"/></svg></div>
-                <div class="audio-wave"><span></span><span></span><span></span><span></span></div>
-                <audio src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-6.mp3"></audio>
-            </div>
         </div>
         <div class="planet-wrap">
             <canvas class="planet-canvas" id="canvas-mars"></canvas>
@@ -552,11 +575,6 @@
             <span class="tag" data-i18n="jupiter.tag">Planet V</span>
             <h2 data-i18n="jupiter.title">Jupiter</h2>
             <p data-i18n="jupiter.text">The King of Planets. This gas giant is so massive it could fit all other planets inside it twice over. The Great Red Spot is a storm larger than Earth that has raged for centuries.</p>
-            <div class="audio-player">
-                <div class="play-btn"><svg viewBox="0 0 24 24" width="16" height="16" fill="black"><path d="M8 5v14l11-7z"/></svg></div>
-                <div class="audio-wave"><span></span><span></span><span></span><span></span></div>
-                <audio src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-7.mp3"></audio>
-            </div>
         </div>
         <div class="planet-wrap">
             <canvas class="planet-canvas" id="canvas-jupiter"></canvas>
@@ -568,11 +586,6 @@
             <span class="tag" data-i18n="saturn.tag">Planet VI</span>
             <h2 data-i18n="saturn.title">Saturn</h2>
             <p data-i18n="saturn.text">The ringed wonder. Its iconic rings are composed primarily of ice particles and rocky debris spanning 282,000 km. Saturn is the least dense planet - it could float on water.</p>
-            <div class="audio-player">
-                <div class="play-btn"><svg viewBox="0 0 24 24" width="16" height="16" fill="black"><path d="M8 5v14l11-7z"/></svg></div>
-                <div class="audio-wave"><span></span><span></span><span></span><span></span></div>
-                <audio src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-8.mp3"></audio>
-            </div>
         </div>
         <div class="planet-wrap">
             <canvas class="planet-canvas" id="canvas-saturn"></canvas>
@@ -584,11 +597,6 @@
             <span class="tag" data-i18n="uranus.tag">Planet VII</span>
             <h2 data-i18n="uranus.title">Uranus</h2>
             <p data-i18n="uranus.text">The tilted giant. Uranus rotates at an angle of 98 degrees, likely due to a massive ancient collision. Its methane atmosphere absorbs red light, giving it a pale aqua hue.</p>
-            <div class="audio-player">
-                <div class="play-btn"><svg viewBox="0 0 24 24" width="16" height="16" fill="black"><path d="M8 5v14l11-7z"/></svg></div>
-                <div class="audio-wave"><span></span><span></span><span></span><span></span></div>
-                <audio src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-9.mp3"></audio>
-            </div>
         </div>
         <div class="planet-wrap">
             <canvas class="planet-canvas" id="canvas-uranus"></canvas>
@@ -600,16 +608,37 @@
             <span class="tag" data-i18n="neptune.tag">Planet VIII</span>
             <h2 data-i18n="neptune.title">Neptune</h2>
             <p data-i18n="neptune.text">The windiest world. Supersonic winds reach 2,100 km/h through clouds of frozen methane on this deep blue ice giant, the most distant planet from our Sun.</p>
-            <div class="audio-player">
-                <div class="play-btn"><svg viewBox="0 0 24 24" width="16" height="16" fill="black"><path d="M8 5v14l11-7z"/></svg></div>
-                <div class="audio-wave"><span></span><span></span><span></span><span></span></div>
-                <audio src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3"></audio>
-            </div>
         </div>
         <div class="planet-wrap">
             <canvas class="planet-canvas" id="canvas-neptune"></canvas>
         </div>
     </section>
+
+    <footer class="site-footer">
+        <div class="footer-inner">
+            <div>
+                <span class="footer-kicker">Secrets of Space</span>
+                <h2 class="footer-title">A black sky filled with stars.</h2>
+                <p class="footer-text">Journey through black holes, planets, rings, storms, and the quiet dark between them.</p>
+            </div>
+            <nav class="footer-links" aria-label="Footer navigation">
+                <a href="#black-hole" data-i18n="nav.blackHole">Black Hole</a>
+                <a href="#solar-system" data-i18n="nav.solarSystem">Solar System</a>
+                <a href="#mercury" data-i18n="nav.mercury">Mercury</a>
+                <a href="#venus" data-i18n="nav.venus">Venus</a>
+                <a href="#earth" data-i18n="nav.earth">Earth</a>
+                <a href="#mars" data-i18n="nav.mars">Mars</a>
+                <a href="#jupiter" data-i18n="nav.jupiter">Jupiter</a>
+                <a href="#saturn" data-i18n="nav.saturn">Saturn</a>
+                <a href="#uranus" data-i18n="nav.uranus">Uranus</a>
+                <a href="#neptune" data-i18n="nav.neptune">Neptune</a>
+            </nav>
+        </div>
+        <div class="footer-bottom">
+            <span>&copy; 2026 Secrets of Space</span>
+            <span>Built for curious minds.</span>
+        </div>
+    </footer>
 
     <script>
     gsap.registerPlugin(ScrollTrigger);
@@ -747,9 +776,6 @@
     };
 
     const languageButtons = document.querySelectorAll(".lang-btn");
-    const playIcon = '<svg viewBox="0 0 24 24" width="16" height="16" fill="black"><path d="M8 5v14l11-7z"/></svg>';
-    const pauseIcon = '<svg viewBox="0 0 24 24" width="16" height="16" fill="black"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>';
-
     function readSavedLanguage() {
         try {
             return localStorage.getItem("space-page-language") || "en";
@@ -795,28 +821,6 @@
     window.addEventListener("mousemove", (event) => {
         gsap.to(dot, { x: event.clientX, y: event.clientY, duration: 0 });
         gsap.to(ring, { x: event.clientX - 20, y: event.clientY - 20, duration: 0.5, ease: "power2.out" });
-    });
-
-    document.querySelectorAll(".play-btn").forEach((button) => {
-        button.addEventListener("click", function () {
-            const audio = this.parentElement.querySelector("audio");
-            const wave = this.parentElement.querySelector(".audio-wave");
-
-            if (audio.paused) {
-                document.querySelectorAll("audio").forEach((item) => {
-                    item.pause();
-                    item.parentElement.querySelector(".audio-wave").classList.remove("playing");
-                    item.parentElement.querySelector(".play-btn").innerHTML = playIcon;
-                });
-                audio.play();
-                wave.classList.add("playing");
-                this.innerHTML = pauseIcon;
-            } else {
-                audio.pause();
-                wave.classList.remove("playing");
-                this.innerHTML = playIcon;
-            }
-        });
     });
 
     gsap.utils.toArray(".physics-card").forEach((card, index) => {
